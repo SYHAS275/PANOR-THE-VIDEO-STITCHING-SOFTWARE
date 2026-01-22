@@ -1,0 +1,351 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Cinematic Pro Theme - Deep blacks with neon accents */
+    --background: 0 0% 0%; /* Pure black #000000 */
+    --foreground: 0 0% 100%;
+
+    --card: 0 0% 4%; /* Near black for cards */
+    --card-foreground: 0 0% 100%;
+
+    --popover: 0 0% 4%;
+    --popover-foreground: 0 0% 100%;
+
+    --primary: 190 100% 50%; /* Electric Blue #00D4FF */
+    --primary-foreground: 0 0% 0%;
+
+    --secondary: 109 100% 62%; /* Cyber Lime #39FF14 */
+    --secondary-foreground: 0 0% 0%;
+
+    --muted: 0 0% 13%; /* #222222 for borders/muted elements */
+    --muted-foreground: 0 0% 60%;
+
+    --accent: 190 100% 50%; /* Electric Blue */
+    --accent-foreground: 0 0% 0%;
+
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 0 0% 13%; /* #222222 thin borders */
+    --input: 0 0% 13%;
+    --ring: 190 100% 50%;
+
+    --radius: 0.5rem;
+    
+    /* Neon accent colors */
+    --neon-blue: #00D4FF;
+    --neon-lime: #39FF14;
+    --dark-border: #222222;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    overflow-x: hidden;
+    background: #000000;
+  }
+}
+
+@layer utilities {
+  /* Cinematic glass panels with sharp 1px borders */
+  .glass-panel {
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(12px);
+    border: 1px solid #222222;
+    box-shadow: 
+      0 0 0 1px rgba(0, 212, 255, 0.05),
+      0 8px 32px rgba(0, 0, 0, 0.8);
+  }
+  
+  /* Professional bordered sections */
+  .cinema-section {
+    border: 1px solid #222222;
+    background: rgba(0, 0, 0, 0.9);
+  }
+  
+  /* Neon glow button - Electric Blue */
+  .btn-neon-blue {
+    background: #00D4FF;
+    color: #000000;
+    border: 1px solid #00D4FF;
+    box-shadow: 
+      0 0 10px rgba(0, 212, 255, 0.3),
+      0 0 20px rgba(0, 212, 255, 0.2),
+      inset 0 0 10px rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+  }
+  
+  .btn-neon-blue:hover {
+    box-shadow: 
+      0 0 15px rgba(0, 212, 255, 0.5),
+      0 0 30px rgba(0, 212, 255, 0.3),
+      0 0 45px rgba(0, 212, 255, 0.2),
+      inset 0 0 15px rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+  }
+  
+  /* Neon glow button - Cyber Lime */
+  .btn-neon-lime {
+    background: #39FF14;
+    color: #000000;
+    border: 1px solid #39FF14;
+    box-shadow: 
+      0 0 10px rgba(57, 255, 20, 0.3),
+      0 0 20px rgba(57, 255, 20, 0.2),
+      inset 0 0 10px rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+  }
+  
+  .btn-neon-lime:hover {
+    box-shadow: 
+      0 0 15px rgba(57, 255, 20, 0.5),
+      0 0 30px rgba(57, 255, 20, 0.3),
+      0 0 45px rgba(57, 255, 20, 0.2),
+      inset 0 0 15px rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+  }
+  
+  /* Secondary button with border outline */
+  .btn-cinema-outline {
+    background: transparent;
+    color: #ffffff;
+    border: 1px solid #222222;
+    transition: all 0.3s ease;
+  }
+  
+  .btn-cinema-outline:hover {
+    border-color: #00D4FF;
+    color: #00D4FF;
+    box-shadow: 0 0 10px rgba(0, 212, 255, 0.2);
+  }
+  
+  /* Monochrome icon styling */
+  .icon-mono {
+    color: rgba(255, 255, 255, 0.6);
+    stroke-width: 1.5;
+  }
+  
+  .icon-mono-bright {
+    color: rgba(255, 255, 255, 0.9);
+    stroke-width: 1.5;
+  }
+  
+  /* Active state with neon glow */
+  .active-neon {
+    border-color: #00D4FF !important;
+    box-shadow: 
+      0 0 10px rgba(0, 212, 255, 0.3),
+      inset 0 0 20px rgba(0, 212, 255, 0.05);
+  }
+  
+  /* Text gradient with neon colors */
+  .text-gradient {
+    background: linear-gradient(135deg, #00D4FF 0%, #39FF14 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  /* White to cyan gradient for headings */
+  .text-gradient-white {
+    background: linear-gradient(135deg, #ffffff 0%, #00D4FF 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  /* Cyan to white gradient */
+  .text-gradient-cyan {
+    background: linear-gradient(90deg, #00D4FF 0%, #ffffff 50%, #00D4FF 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  /* Bright white for labels - maximum visibility */
+  .text-gradient-subtle {
+    color: #ffffff;
+  }
+  
+  /* Lime accent gradient */
+  .text-gradient-lime {
+    background: linear-gradient(135deg, #39FF14 0%, #00D4FF 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  /* Neon text glow */
+  .text-neon-blue {
+    color: #00D4FF;
+    text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+  }
+  
+  .text-neon-lime {
+    color: #39FF14;
+    text-shadow: 0 0 10px rgba(57, 255, 20, 0.5);
+  }
+  
+  /* Progress bar neon style */
+  .progress-neon {
+    background: linear-gradient(90deg, #00D4FF, #39FF14);
+    box-shadow: 
+      0 0 10px rgba(0, 212, 255, 0.5),
+      0 0 20px rgba(57, 255, 20, 0.3);
+  }
+  
+  /* Timeline/workspace separator */
+  .cinema-divider {
+    border-top: 1px solid #222222;
+  }
+  
+  /* Upload zone styling */
+  .upload-zone {
+    border: 1px dashed #333333;
+    background: rgba(0, 0, 0, 0.6);
+    transition: all 0.3s ease;
+  }
+  
+  .upload-zone:hover {
+    border-color: #00D4FF;
+    background: rgba(0, 212, 255, 0.02);
+    box-shadow: inset 0 0 30px rgba(0, 212, 255, 0.05);
+  }
+  
+  .upload-zone.has-file {
+    border-color: #39FF14;
+    border-style: solid;
+    background: rgba(57, 255, 20, 0.02);
+  }
+}
+
+/* Animations */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(0, 212, 255, 0.2); }
+  50% { box-shadow: 0 0 40px rgba(0, 212, 255, 0.4), 0 0 60px rgba(57, 255, 20, 0.2); }
+}
+
+@keyframes neon-pulse {
+  0%, 100% { 
+    box-shadow: 0 0 5px rgba(0, 212, 255, 0.3), 0 0 10px rgba(0, 212, 255, 0.2);
+  }
+  50% { 
+    box-shadow: 0 0 15px rgba(0, 212, 255, 0.5), 0 0 30px rgba(0, 212, 255, 0.3);
+  }
+}
+
+@keyframes scanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.6s ease-out forwards;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.8s ease-out forwards;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 3s infinite;
+}
+
+.animate-neon-pulse {
+  animation: neon-pulse 2s infinite;
+}
+
+/* SVG Line Animation */
+@keyframes dash-flow {
+  0% { stroke-dashoffset: 1000; }
+  100% { stroke-dashoffset: -1000; }
+}
+
+.animate-dash-flow {
+  stroke-dasharray: 100 1000;
+  animation: dash-flow 4s linear infinite;
+}
+
+.animate-dash-flow-delayed {
+  stroke-dasharray: 100 1000;
+  animation: dash-flow 4s linear infinite;
+  animation-delay: 2s;
+}
+
+/* Futuristic Grid Animation with neon */
+@keyframes grid-move {
+  0% { transform: rotateX(60deg) translateY(0); }
+  100% { transform: rotateX(60deg) translateY(4rem); }
+}
+
+.animate-grid-move {
+  animation: grid-move 2s linear infinite;
+}
+
+@keyframes scale-in {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes bounce-subtle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+
+.animate-scale-in {
+  animation: scale-in 0.5s ease-out forwards;
+}
+
+.animate-bounce-subtle {
+  animation: bounce-subtle 2s ease-in-out infinite;
+}
+
+/* Cinematic scanline overlay effect */
+.scanline-overlay::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.3), transparent);
+  animation: scanline 8s linear infinite;
+  pointer-events: none;
+}
+
+/* Custom scrollbar for cinema feel */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #000000;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #222222;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #00D4FF;
+}

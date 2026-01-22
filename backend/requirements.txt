@@ -1,0 +1,17 @@
+# FastAPI and server
+fastapi
+uvicorn[standard]
+python-multipart
+
+# Video processing
+opencv-python-headless
+numpy
+psutil
+
+# Authentication
+python-jose[cryptography]
+passlib[bcrypt]
+pydantic[email]
+
+# Optional: YOLO object detection (comment out if not needed)
+# ultralytics

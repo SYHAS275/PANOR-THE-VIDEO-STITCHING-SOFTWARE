@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+.mypy_cache/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Build outputs
+dist/
+build/
+
+# Video files (too large for git)
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.webm
+
+# Project data directories
+uploads/
+outputs/
+
+# Logs
+*.log
+debug.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Python
+*.egg-info/
+.eggs/
+venv/
+.venv/
