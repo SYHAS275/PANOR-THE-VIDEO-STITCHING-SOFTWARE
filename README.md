@@ -202,6 +202,28 @@ A `railway.json` config is included for Railway deployments.
 
 ---
 
+## Tested Datasets
+
+The project has been validated against the following public and custom datasets:
+
+| Dataset | Description | Use Case |
+|---------|-------------|----------|
+| [Waymo Open Dataset](https://drive.google.com/drive/folders/10kc3cGtZnUcN_5r86Gi0sAMdScA5x_OP?usp=sharing) | Autonomous vehicle multi-camera footage | Front-left, front, front-right camera stitching |
+| [StabStitch-D](https://drive.google.com/drive/folders/1f32_RLQawtfqldfh-64HYj7yrjSrMKtz?usp=sharing) | ECCV2024 benchmark with 100+ video pairs | Diverse scenes: regular, low-texture, low-light, fast-moving |
+| [Static Dataset](https://drive.google.com/drive/folders/11fApYmZr2WuBt4A3CA1uWgIS5cIHiWvR?usp=sharing) | Fixed camera static recordings | Static camera panorama stitching |
+| [Static Dataset 2](https://drive.google.com/drive/folders/1JtzsE5GxcC1FbBnoeBQGQS7v9TgcGLHC?usp=sharing) | Additional fixed camera recordings | Static camera panorama stitching |
+| Custom GoPro | Personal multi-camera recordings | General panorama creation |
+
+### Which script to use per dataset
+
+| Dataset | Script |
+|---------|--------|
+| Waymo Open Dataset | `3camera.py` |
+| StabStitch-D | `2camera.py` |
+| Static Dataset / Static Dataset 2 | `no_gpu_static.py` |
+
+---
+
 ## Tech Stack
 
 **Frontend:** React 19, Vite, Tailwind CSS, Framer Motion, Axios
