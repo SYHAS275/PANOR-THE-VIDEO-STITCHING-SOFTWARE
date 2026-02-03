@@ -43,3 +43,12 @@ Thumbs.db
 .eggs/
 venv/
 .venv/
+
+# Model weights
+*.pt
+
+# User data
+users_db.json
+
+# Windows artifacts
+NUL

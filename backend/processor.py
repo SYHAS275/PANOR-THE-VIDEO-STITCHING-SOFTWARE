@@ -94,6 +94,20 @@ async def process_video_job(
                     right_video_path=file_paths[2],
                     **params,
                 )
+            elif mode == "cylindrical":
+                # Import cylindrical module dynamically and reload to pick up changes
+                cylindrical_module = importlib.import_module("cylindrical")
+                importlib.reload(cylindrical_module)
+
+                # Set progress callback if available
+                if hasattr(cylindrical_module, "set_progress_callback"):
+                    cylindrical_module.set_progress_callback(progress_callback)
+
+                return cylindrical_module.stitch_video_cylindrical(
+                    left_video_path=file_paths[0],
+                    right_video_path=file_paths[1],
+                    **params,
+                )
             else:
                 raise ValueError(f"Unknown mode: {mode}")
 

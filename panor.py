@@ -26,6 +26,15 @@ from threading import Thread
 from queue import Queue
 import logging
 import psutil
+
+try:
+    import pynvml
+
+    pynvml.nvmlInit()
+    GPU_HANDLE = pynvml.nvmlDeviceGetHandleByIndex(0)
+    GPU_AVAILABLE = True
+except:
+    GPU_AVAILABLE = False
 from collections import defaultdict
 
 # Configure logging
@@ -2058,7 +2067,7 @@ def stitch_videos_2cam(
     left_video_path,
     right_video_path,
     output_name=None,
-    show_preview=True,
+    show_preview=False,
     moving_camera=False,
     enable_detection=False,
     detection_model="n",
@@ -2304,14 +2313,16 @@ def stitch_videos_2cam(
                     lz = rh - cv2.countNonZero(sub[:, 0])
                     rz = rh - cv2.countNonZero(sub[:, -1])
 
-                    if tz == 0 and bz == 0 and lz == 0 and rz == 0:
+                    # Only check top and sides, ignore bottom to prevent over-cropping
+                    if tz == 0 and lz == 0 and rz == 0:
                         break
 
                     if tz > 0:
                         ry += 1
                         rh -= 1
-                    if bz > 0:
-                        rh -= 1
+                    # Bottom shrinking disabled to prevent cutting off content
+                    # if bz > 0:
+                    #     rh -= 1
                     if lz > 0:
                         rx += 1
                         rw -= 1
@@ -2319,8 +2330,6 @@ def stitch_videos_2cam(
                         rw -= 1
 
                 if rw > 0 and rh > 0:
-                    # Add some padding to preserve more content at the bottom
-                    rh = rh + 15
                     crop_roi = (rx, ry, rw, rh)
                     logger.info(f"Auto-calculated crop ROI: {crop_roi}")
 
@@ -2500,7 +2509,11 @@ def stitch_videos_2cam(
     video_reader.release()
     if writer:
         writer.release()
-    cv2.destroyAllWindows()
+    if show_preview:
+        try:
+            cv2.destroyAllWindows()
+        except Exception:
+            pass
 
     logger.info(
         f"\nPhase 1 complete: {frame_count} frames in {total_time:.1f}s ({frame_count / total_time:.1f} FPS)"
@@ -2523,21 +2536,33 @@ def stitch_videos_2cam(
         logger.info("=" * 60)
         logger.info("ENCODING (Phase 2)")
 
-        ffmpeg_cmd = [
-            "ffmpeg",
-            "-y",
-            "-i",
-            temp_output,
-            "-c:v",
-            "libx264",  # Force CPU encoding for stability
-            "-preset",
-            "fast",
-            "-crf",
-            "23",
-            "-pix_fmt",
-            "yuv420p",
-            final_output,
-        ]
+        # Use NVENC GPU encoding if available, otherwise fall back to CPU
+        if nvenc_available:
+            ffmpeg_cmd = [
+                "ffmpeg",
+                "-y",
+                "-hwaccel", "cuda",
+                "-i", temp_output,
+                "-c:v", "h264_nvenc",
+                "-preset", "p4",  # Fast NVENC preset
+                "-rc", "vbr",
+                "-cq", "23",
+                "-pix_fmt", "yuv420p",
+                final_output,
+            ]
+            logger.info("Using NVENC GPU encoding")
+        else:
+            ffmpeg_cmd = [
+                "ffmpeg",
+                "-y",
+                "-i", temp_output,
+                "-c:v", "libx264",
+                "-preset", "fast",
+                "-crf", "23",
+                "-pix_fmt", "yuv420p",
+                final_output,
+            ]
+            logger.info("Using CPU encoding (NVENC not available)")
 
         # Default to returning temp output if re-encoding fails
         output_file = temp_output
@@ -2550,17 +2575,27 @@ def stitch_videos_2cam(
             logger.info(f"Encoding complete: {final_output}")
         else:
             logger.error(f"FFmpeg encoding failed: {result.stderr}")
-            logger.warning("Falling back to renaming temp AVI file to destination")
-            # Fallback: Just rename/move the avi to mp4 (it will describe itself as avi but have mp4 extension, which often works)
-            # OR just return the AVI path. The backend handles .avi fallback logic too.
-            # But to be safe for "download", let's try to rename it so at least there is a file at expected path.
-            if os.path.exists(temp_output):
-                # Copy/Rename logic
-                # If we just return temp_output, backend needs to handle it.
-                # Let's try to rename it to final_output so the link works?
-                # But browser might complain if AVI is inside MP4 container name.
-                # Better: Return temp_output (AVI) and let backend serve it.
-                pass
+            # If NVENC failed, try CPU fallback
+            if nvenc_available:
+                logger.warning("NVENC failed, trying CPU encoding fallback...")
+                ffmpeg_cmd_cpu = [
+                    "ffmpeg",
+                    "-y",
+                    "-i", temp_output,
+                    "-c:v", "libx264",
+                    "-preset", "fast",
+                    "-crf", "23",
+                    "-pix_fmt", "yuv420p",
+                    final_output,
+                ]
+                result = subprocess.run(ffmpeg_cmd_cpu, capture_output=True, text=True)
+                if result.returncode == 0:
+                    if os.path.exists(temp_output):
+                        os.remove(temp_output)
+                    output_file = final_output
+                    logger.info(f"CPU encoding complete: {final_output}")
+                else:
+                    logger.error(f"CPU encoding also failed: {result.stderr}")
 
     logger.info("=" * 60)
     logger.info(f"COMPLETE - Output: {output_file}")
@@ -2575,7 +2610,7 @@ def stitch_videos_3cam(
     center_video_path,
     right_video_path,
     output_name=None,
-    show_preview=True,
+    show_preview=False,
     moving_camera=False,
     enable_detection=False,
     detection_model="n",
@@ -2739,13 +2774,15 @@ def stitch_videos_3cam(
                     bz = rw - cv2.countNonZero(sub[-1, :])
                     lz = rh - cv2.countNonZero(sub[:, 0])
                     rz = rh - cv2.countNonZero(sub[:, -1])
-                    if tz == 0 and bz == 0 and lz == 0 and rz == 0:
+                    # Only check top and sides, ignore bottom to prevent over-cropping
+                    if tz == 0 and lz == 0 and rz == 0:
                         break
                     if tz > 0:
                         ry += 1
                         rh -= 1
-                    if bz > 0:
-                        rh -= 1
+                    # Bottom shrinking disabled to prevent cutting off content
+                    # if bz > 0:
+                    #     rh -= 1
                     if lz > 0:
                         rx += 1
                         rw -= 1
@@ -2753,8 +2790,6 @@ def stitch_videos_3cam(
                         rw -= 1
 
                 if rw > 0 and rh > 0:
-                    # Add some padding to preserve more content at the bottom
-                    rh = rh + 50
                     crop_roi = (rx, ry, rw, rh)
                     logger.info(f"Auto-calculated crop ROI: {crop_roi}")
 
@@ -2921,7 +2956,11 @@ def stitch_videos_3cam(
     video_reader.release()
     if writer:
         writer.release()
-    cv2.destroyAllWindows()
+    if show_preview:
+        try:
+            cv2.destroyAllWindows()
+        except Exception:
+            pass
 
     logger.info(
         f"\nPhase 1 complete: {frame_count} frames in {total_time:.1f}s ({frame_count / total_time:.1f} FPS)"
@@ -2944,21 +2983,33 @@ def stitch_videos_3cam(
         logger.info("=" * 60)
         logger.info("ENCODING (Phase 2)")
 
-        ffmpeg_cmd = [
-            "ffmpeg",
-            "-y",
-            "-i",
-            temp_output,
-            "-c:v",
-            "libx264",  # Force CPU encoding for stability
-            "-preset",
-            "fast",
-            "-crf",
-            "23",
-            "-pix_fmt",
-            "yuv420p",
-            final_output,
-        ]
+        # Use NVENC GPU encoding if available, otherwise fall back to CPU
+        if nvenc_available:
+            ffmpeg_cmd = [
+                "ffmpeg",
+                "-y",
+                "-hwaccel", "cuda",
+                "-i", temp_output,
+                "-c:v", "h264_nvenc",
+                "-preset", "p4",  # Fast NVENC preset
+                "-rc", "vbr",
+                "-cq", "23",
+                "-pix_fmt", "yuv420p",
+                final_output,
+            ]
+            logger.info("Using NVENC GPU encoding")
+        else:
+            ffmpeg_cmd = [
+                "ffmpeg",
+                "-y",
+                "-i", temp_output,
+                "-c:v", "libx264",
+                "-preset", "fast",
+                "-crf", "23",
+                "-pix_fmt", "yuv420p",
+                final_output,
+            ]
+            logger.info("Using CPU encoding (NVENC not available)")
 
         # Default to returning temp output if re-encoding fails
         output_file = temp_output
@@ -2971,14 +3022,27 @@ def stitch_videos_3cam(
             logger.info(f"Encoding complete: {final_output}")
         else:
             logger.error(f"FFmpeg encoding failed: {result.stderr}")
-            logger.warning("Falling back to renaming temp AVI file to destination")
-            # Cleanup - remove the partial/corrupt MP4 if it was created
-            if os.path.exists(final_output):
-                try:
-                    os.remove(final_output)
-                except OSError:
-                    pass
-            # Output file remains temp_output (AVI)
+            # If NVENC failed, try CPU fallback
+            if nvenc_available:
+                logger.warning("NVENC failed, trying CPU encoding fallback...")
+                ffmpeg_cmd_cpu = [
+                    "ffmpeg",
+                    "-y",
+                    "-i", temp_output,
+                    "-c:v", "libx264",
+                    "-preset", "fast",
+                    "-crf", "23",
+                    "-pix_fmt", "yuv420p",
+                    final_output,
+                ]
+                result = subprocess.run(ffmpeg_cmd_cpu, capture_output=True, text=True)
+                if result.returncode == 0:
+                    if os.path.exists(temp_output):
+                        os.remove(temp_output)
+                    output_file = final_output
+                    logger.info(f"CPU encoding complete: {final_output}")
+                else:
+                    logger.error(f"CPU encoding also failed: {result.stderr}")
 
     logger.info("=" * 60)
     logger.info(f"COMPLETE - Output: {output_file}")

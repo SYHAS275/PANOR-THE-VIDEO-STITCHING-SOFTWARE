@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { Upload, FileVideo, Film, Settings, Video } from 'lucide-react';
+import { Upload, FileVideo, Film, Settings, Video, Crosshair } from 'lucide-react';
 
 export default function UploadForm({ mode, setMode, onUpload }) {
     const [files, setFiles] = useState({ left: null, center: null, right: null });
 
     // Processing options state
     const [movingCamera, setMovingCamera] = useState(false);
+    const [enableDetection, setEnableDetection] = useState(false); // YOLO tracker off by default
 
     const handleFileChange = (position, e) => {
         if (e.target.files[0]) {
@@ -14,14 +15,14 @@ export default function UploadForm({ mode, setMode, onUpload }) {
     };
 
     const isReady = () => {
-        if (mode === '2cam') return files.left && files.right;
+        if (mode === '2cam' || mode === 'cylindrical') return files.left && files.right;
         return files.left && files.center && files.right;
     };
 
     const handleSubmit = () => {
         if (isReady()) {
             // Pass files and options to parent
-            onUpload(files, { movingCamera });
+            onUpload(files, { movingCamera, enableDetection });
         }
     };
 
@@ -116,16 +117,16 @@ export default function UploadForm({ mode, setMode, onUpload }) {
 
             {/* Requirements Note */}
             <div className="bg-black/60 border border-[#222222] rounded-lg p-4">
-                <div className="flex items-start gap-3">
-                    <span className="w-2 h-2 rounded-full bg-[#00D4FF] mt-1.5 animate-pulse flex-shrink-0"></span>
-                    <div className="text-sm text-white/70 space-y-2">
-                        <p className="font-semibold text-[#00D4FF]">Input Requirements</p>
-                        <div className="space-y-1 text-white/60 text-xs">
-                            <p>• <span className="text-white/80">20-30% overlap</span> between adjacent camera views</p>
-                            <p>• <span className="text-white/80">Same resolution</span> and frame rate for all videos</p>
-                            <p>• <span className="text-white/80">Synchronized start</span> time for best results</p>
-                            <p>• <span className="text-white/80">Static features</span> in overlap region improve alignment</p>
-                        </div>
+                <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-[#00D4FF] animate-pulse flex-shrink-0"></span>
+                        <p className="font-semibold text-[#00D4FF] text-sm">Input Requirements</p>
+                    </div>
+                    <div className="space-y-1 text-white/60 text-xs pl-4">
+                        <p>• <span className="text-white/80">20-30% overlap</span> between adjacent camera views</p>
+                        <p>• <span className="text-white/80">Same resolution</span> and frame rate for all videos</p>
+                        <p>• <span className="text-white/80">Synchronized start</span> time for best results</p>
+                        <p>• <span className="text-white/80">Static features</span> in overlap region improve alignment</p>
                     </div>
                 </div>
             </div>
@@ -151,11 +152,20 @@ export default function UploadForm({ mode, setMode, onUpload }) {
                     >
                         3 Cameras
                     </button>
+                    <button
+                        onClick={() => { setMode('cylindrical'); setFiles({ left: null, center: null, right: null }); }}
+                        className={`px-8 py-2.5 rounded-md text-sm font-semibold transition-all duration-300 ${mode === 'cylindrical'
+                            ? 'bg-[#00D4FF] text-black shadow-[0_0_20px_rgba(0,212,255,0.3)]'
+                            : 'text-white/40 hover:text-white hover:bg-white/5'
+                            }`}
+                    >
+                        Cylindrical
+                    </button>
                 </div>
             </div>
 
             {/* Upload Grid - With cinematic bordered zones */}
-            <div className={`grid gap-6 ${mode === '2cam' ? 'grid-cols-2' : 'grid-cols-3'}`}>
+            <div className={`grid gap-6 ${mode === '3cam' ? 'grid-cols-3' : 'grid-cols-2'}`}>
                 <div className="animate-slide-up" style={{ animationDelay: '0.1s' }}>
                     <UploadBox position="left" label="Left" />
                 </div>
@@ -183,6 +193,13 @@ export default function UploadForm({ mode, setMode, onUpload }) {
                         icon={Video}
                         description="Optimized for vehicle-mounted footage"
                     />
+                    <ToggleSwitch
+                        enabled={enableDetection}
+                        onChange={setEnableDetection}
+                        label="YOLO Tracker"
+                        icon={Crosshair}
+                        description="Detect and track objects in video"
+                    />
                 </div>
             </div>
 
@@ -203,6 +220,19 @@ export default function UploadForm({ mode, setMode, onUpload }) {
                     <Film className={`w-5 h-5 ${isReady() ? 'animate-pulse' : ''}`} strokeWidth={1.5} />
                     Start Processing
                 </button>
+            </div>
+
+            {/* Warning Notice */}
+            <div className="mt-6 p-4 rounded-lg border border-red-500/30 bg-red-500/5">
+                <div className="flex items-start gap-3">
+                    <span className="w-2 h-2 rounded-full bg-red-500 mt-1.5 animate-pulse flex-shrink-0"></span>
+                    <div className="text-left">
+                        <p className="font-semibold text-red-400 text-sm">⚠️ Notice</p>
+                        <p className="text-red-300/70 text-xs mt-1">
+                            For best results, use videos with stable lighting and consistent overlap. Minor ghosting may occur when objects cross the seam lines between cameras.
+                        </p>
+                    </div>
+                </div>
             </div>
         </div>
     );

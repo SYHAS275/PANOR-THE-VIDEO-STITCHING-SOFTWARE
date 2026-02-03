@@ -6,6 +6,8 @@ Provides JWT token creation/validation and password hashing.
 from datetime import datetime, timedelta
 from typing import Optional
 import os
+import json
+import threading
 
 from jose import JWTError, jwt
 from passlib.context import CryptContext
@@ -19,7 +21,7 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7  # 7 days
 
 # Password hashing
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 
 # Security scheme
 security = HTTPBearer()
@@ -48,12 +50,51 @@ class Token(BaseModel):
     token_type: str
 
 
+class AuthResponse(BaseModel):
+    """Response model for signup/login that includes user info."""
+
+    access_token: str
+    token_type: str
+    user: "User"
+
+
 class TokenData(BaseModel):
     email: Optional[str] = None
 
 
 # In-memory user store (replace with database in production)
 users_db: dict = {}
+_users_lock = threading.Lock()
+_users_db_path = os.path.abspath(
+    os.getenv("USERS_DB_PATH", os.path.join(os.path.dirname(__file__), "users_db.json"))
+)
+
+
+def _load_users_db():
+    global users_db
+    try:
+        if not os.path.exists(_users_db_path):
+            return
+        with open(_users_db_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        if isinstance(data, dict):
+            users_db = data
+    except Exception:
+        return
+
+
+def _persist_users_db():
+    directory = os.path.dirname(_users_db_path)
+    os.makedirs(directory, exist_ok=True)
+    tmp_path = f"{_users_db_path}.tmp"
+    with open(tmp_path, "w", encoding="utf-8") as f:
+        json.dump(users_db, f, ensure_ascii=False, indent=2)
+        f.flush()
+        os.fsync(f.fileno())
+    os.replace(tmp_path, _users_db_path)
+
+
+_load_users_db()
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -99,20 +140,22 @@ def create_user(user_data: UserCreate) -> User:
     """Create a new user."""
     import uuid
 
-    if get_user_by_email(user_data.email):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered"
-        )
+    with _users_lock:
+        if get_user_by_email(user_data.email):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered"
+            )
 
-    user_id = str(uuid.uuid4())
-    hashed_password = get_password_hash(user_data.password)
+        user_id = str(uuid.uuid4())
+        hashed_password = get_password_hash(user_data.password)
 
-    users_db[user_data.email] = {
-        "id": user_id,
-        "name": user_data.name,
-        "email": user_data.email,
-        "hashed_password": hashed_password,
-    }
+        users_db[user_data.email] = {
+            "id": user_id,
+            "name": user_data.name,
+            "email": user_data.email,
+            "hashed_password": hashed_password,
+        }
+        _persist_users_db()
 
     return User(id=user_id, name=user_data.name, email=user_data.email)
 

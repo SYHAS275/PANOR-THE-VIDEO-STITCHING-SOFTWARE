@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import axios from 'axios';
 import { Upload, Activity, CheckCircle, AlertCircle, LogOut, User } from 'lucide-react';
 import UploadForm from './components/UploadForm';
@@ -6,6 +6,8 @@ import ProcessingStatus from './components/ProcessingStatus';
 import ResultView from './components/ResultView';
 import FuturisticBackground from './components/FuturisticBackground';
 import AuthModal from './components/AuthModal';
+const MagneticSnapHero = lazy(() => import('./components/MagneticSnapHero'));
+const LiveAvatarHero = lazy(() => import('./components/LiveAvatarHero'));
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000/api";
 
@@ -61,7 +63,7 @@ function App() {
     const params = new URLSearchParams({
       mode: mode,
       moving_camera: options.movingCamera ?? true,
-      enable_detection: options.enableDetection ?? true,
+      enable_detection: options.enableDetection ?? false,
       use_timestamps: options.useTimestamps ?? false
     });
 
@@ -154,20 +156,25 @@ function App() {
 
           {/* Show login prompt if not authenticated */}
           {!user ? (
-            <div className="text-center space-y-6 glass-panel p-12 rounded-lg animate-fade-in">
-              <div className="inline-flex p-4 rounded-lg bg-[#00D4FF]/10 text-[#00D4FF] mb-4 border border-[#00D4FF]/30">
-                <User className="w-12 h-12" strokeWidth={1.5} />
+            <div className="text-center space-y-4 animate-fade-in -mt-32">
+              {/* Title at the top */}
+              <h2 className="text-4xl font-bold tracking-tight text-gradient-white uppercase">WELCOME TO PANOR</h2>
+              
+              <Suspense fallback={<div className="w-full max-w-3xl mx-auto h-[160px] rounded-2xl border border-[#222222] bg-black/40" />}>
+                <LiveAvatarHero />
+              </Suspense>
+              
+              <div className="glass-panel p-6 rounded-lg space-y-4">
+                <p className="text-white/50 max-w-md mx-auto">
+                  Sign in or create an account to start stitching your panoramic videos with multi-camera stitching technology.
+                </p>
+                <button
+                  onClick={() => setShowAuthModal(true)}
+                  className="mt-2 px-8 py-3 btn-neon-blue rounded-lg font-semibold transition-all"
+                >
+                  Get Started
+                </button>
               </div>
-              <h2 className="text-3xl font-bold text-white">Welcome to PANOR</h2>
-              <p className="text-white/50 max-w-md mx-auto">
-                Sign in or create an account to start stitching your panoramic videos with our advanced AI-powered technology.
-              </p>
-              <button
-                onClick={() => setShowAuthModal(true)}
-                className="mt-4 px-8 py-3 btn-neon-blue rounded-lg font-semibold transition-all"
-              >
-                Get Started
-              </button>
             </div>
           ) : (
             <>
@@ -194,6 +201,7 @@ function App() {
                 <ResultView
                   filename={resultFile}
                   apiBase={API_BASE}
+                  jobId={jobId}
                   onReset={reset}
                 />
               )}
