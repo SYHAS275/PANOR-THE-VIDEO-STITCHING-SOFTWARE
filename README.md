@@ -4,6 +4,8 @@ A web application that stitches multiple camera video feeds into seamless panora
 
 ![PANOR Frontend](assets/screenshot.png)
 
+![Stitching Result](assets/screenshot-result.png)
+
 ---
 
 ## Features
