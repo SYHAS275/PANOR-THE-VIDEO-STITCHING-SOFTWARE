@@ -2,6 +2,8 @@
 
 A web application that stitches multiple camera video feeds into seamless panoramic videos using CUDA GPU acceleration and computer vision. Optionally detect and track objects (people, cars, etc.) in real-time with YOLOv8.
 
+![PANOR Frontend](assets/screenshot.png)
+
 ---
 
 ## Features
