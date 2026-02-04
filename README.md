@@ -6,6 +6,12 @@ A web application that stitches multiple camera video feeds into seamless panora
 
 ![Stitching Result](assets/screenshot-result.png)
 
+### 2 CAM
+![2 CAM Result](assets/2cam.gif)
+
+### 3 CAM
+![3 CAM Result](assets/3cam.gif)
+
 ---
 
 ## Features
