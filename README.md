@@ -49,22 +49,20 @@ pip install ultralytics torch torchvision
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/<your-username>/panor.git
-cd panor
+git clone https://github.com/SYHAS275/PANOR-THE-VIDEO-STITCHING-SOFTWARE.git
+cd PANOR-THE-VIDEO-STITCHING-SOFTWARE
 ```
 
-### 2. Install backend dependencies
+### 2. Install all dependencies
+
+**Quick Install (Windows):** Double-click `requirements.bat` to install both backend and frontend dependencies in one go.
+
+**Manual Install:**
 
 ```bash
 cd backend
 pip install -r requirements.txt
-cd ..
-```
-
-### 3. Install frontend dependencies
-
-```bash
-cd frontend
+cd ../frontend
 npm install
 cd ..
 ```
